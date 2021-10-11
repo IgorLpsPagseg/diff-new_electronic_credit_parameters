@@ -102,7 +102,7 @@ public class TableResource {
 
 
     @RequestMapping(
-            value = {"/result-report"},
+            value = {"/diff"},
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<DiffReporVO> resultReport(@RequestBody DiffRequest request) throws Exception {
