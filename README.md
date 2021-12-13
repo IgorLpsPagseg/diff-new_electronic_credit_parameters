@@ -16,3 +16,100 @@ payload:
     "repositoryPath": "/home/ileonardo/Documents/Sustentaçao/Recarga/2021" ,
     "folderName":  "SDPE-651662"
 }
+
+
+//Recarga Celular
+
+///Transação Recarga *QA
+
+http://localhost:8080/mobile/transaction
+
+{
+"applicationCode": "566210",
+"readerModel": "M30",
+"serialNumber": "68003142",
+"activationCode": "749879",
+"encodeSale":{   
+"pinPadManufacturerName": "PAX                 ",
+"cardTransactionType": 1,
+"ammount": "0000012400",
+"pan": "5521280901504768" ,
+"electronicCreditBranchCode": "00201000000",
+"electronicCreditPhoneNumber": "31999999999"
+}
+}
+
+
+
+
+///Transação Recarga por Quantidade *QA
+
+http://localhost:8080/mobile/transaction-load
+
+{
+"qtd":  1 ,
+"applicationCode": "566210",
+"readerModel": "M30",
+"serialNumber": "68003142",
+"activationCode": "749879",
+"encodeSale":{   
+"pinPadManufacturerName": "PAX                 ",
+"cardTransactionType": 1,
+"ammount": "0000004600",
+"pan": "4556779321370057",
+"electronicCreditBranchCode": "00201000000",
+"electronicCreditPhoneNumber": "31999999999"
+}
+}
+
+
+
+
+
+//ClubePag
+
+//Registrar
+
+http://localhost:8080/mobile/clubePagConsumerId
+
+
+{
+"qtd": 1,
+"applicationCode": "566210",
+"readerModel": "M30",
+"serialNumber": "68003142",
+"activationCode": "749879",
+"phoneNumber": "11963852741",
+"totalAmount": "100",
+"encodeSale":{   
+"pinPadManufacturerName": "PAX                 ",
+"cardTransactionType": 1,
+"ammount": "0000002600",
+"pan": "5521280901504768"
+}   
+}
+
+
+
+/// Lista de Ofertas
+
+http://localhost:8080/mobile/clubePagRedeemableOfferList
+
+
+{
+"qtd": 1,
+"applicationCode": "566210",
+"readerModel": "M30",
+"serialNumber": "68003142",
+"activationCode": "749879",
+"phoneNumber": "11963852741",
+"totalAmount": "100",
+"encodeSale":{   
+"pinPadManufacturerName": "PAX                 ",
+"cardTransactionType": 1,
+"ammount": "0000002600",
+"pan": "4556779321370057"
+}   
+}
+
+ 

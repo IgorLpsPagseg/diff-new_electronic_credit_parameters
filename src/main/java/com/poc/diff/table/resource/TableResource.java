@@ -108,7 +108,7 @@ public class TableResource {
     public ResponseEntity<DiffReporVO> resultReport(@RequestBody DiffRequest request) throws Exception {
         String repositoryPath = request.getRepositoryPath();
         String folderName = request.getFolderName();
-        System.out.println( " path: "+repositoryPath+ " folderName: "+folderName);
+        LOGGER.info( " path: "+repositoryPath+ " folderName: "+folderName);
 
         ResultTable resultTable = fileReaderService.getResult(repositoryPath, folderName);
 

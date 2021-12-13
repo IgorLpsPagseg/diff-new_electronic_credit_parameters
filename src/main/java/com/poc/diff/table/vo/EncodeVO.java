@@ -6,12 +6,11 @@ import lombok.ToString;
 
 /**
  * @author ileonardo
- * @since 11/10/2021 10:40
+ * @since 09/12/2021 16:16
  */
+@ToString
 @Getter
 @Setter
-@ToString
-public class DiffRequest {
-    String repositoryPath;
-    String folderName;
+public class EncodeVO {
+  private String buffer;
 }
