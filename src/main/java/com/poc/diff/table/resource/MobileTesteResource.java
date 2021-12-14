@@ -22,6 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * @author ileonardo
@@ -55,7 +58,10 @@ private MobileClubePagTesteService mobileClubePagTesteService;
         List<String> transactions =  new ArrayList<>();
         String token = service.authenticationRequest(request);
         for(int i =0; i < request.getQtd(); i++){
-            TransactionResponseVO transaction = service.createTransaction(request, token);
+            //TransactionResponseVO transaction = service.createTransaction(request, token);
+            Future<TransactionResponseVO> futureVO =  tansactionResponseVOAsync(request, token);
+            TransactionResponseVO transaction = futureVO.get();
+
             if(transaction.getTransactionId() != null){
                 transactions.add(transaction.getTransactionId()+"; "+transaction.getErrorCode());
             }
@@ -115,8 +121,9 @@ private MobileClubePagTesteService mobileClubePagTesteService;
                 ClubePagConsumerIdRequest clubePagConsumerIdRequest = request.getClubePagConsumerId();
                 clubePagConsumerIdRequest.setTransactionCode(transaction.getTransactionId() );
                 clubePagConsumerIdRequest.setApplicationCode(request.getApplicationCode());
-                MessageVO vo = mobileClubePagTesteService.ClubePagConsumerId(clubePagConsumerIdRequest,token);
-                transactions.add(vo);
+                //MessageVO vo = mobileClubePagTesteService.ClubePagConsumerId(clubePagConsumerIdRequest,token);
+                Future<MessageVO> future = messageVOAsync(clubePagConsumerIdRequest, token);
+                transactions.add(future.get());
             }
             Integer value = Integer.valueOf(request.getEncodeSale().getAmmount());
             Integer newValue = value + 10;
@@ -135,5 +142,31 @@ private MobileClubePagTesteService mobileClubePagTesteService;
             aux = aux+ch;
         }
         return aux+str;
+    }
+
+
+    public Future<MessageVO> messageVOAsync(ClubePagConsumerIdRequest clubePagConsumerIdRequest, String token) throws InterruptedException {
+        LOGGER.info("messageVOAsync________________request={}", clubePagConsumerIdRequest);
+        CompletableFuture<MessageVO> completableFuture = new CompletableFuture<>();
+        Executors.newCachedThreadPool().submit(() -> {
+            Thread.sleep(1000);
+            MessageVO vo = mobileClubePagTesteService.ClubePagConsumerId(clubePagConsumerIdRequest,token);
+            completableFuture.complete(vo);
+            return null;
+        });
+        return completableFuture;
+    }
+
+
+    public Future<TransactionResponseVO> tansactionResponseVOAsync(AuthenticationRequest request, String token) throws InterruptedException {
+        LOGGER.info("TransactionResponseVOAsync  request={}", request);
+        CompletableFuture<TransactionResponseVO> completableFuture = new CompletableFuture<>();
+        Executors.newCachedThreadPool().submit(() -> {
+            Thread.sleep(1000);
+            TransactionResponseVO transaction = service.createTransaction(request, token);
+            completableFuture.complete(transaction);
+            return null;
+        });
+        return completableFuture;
     }
 }
