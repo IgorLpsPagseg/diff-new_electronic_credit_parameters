@@ -6,7 +6,6 @@ import com.poc.diff.table.vo.AuthenticationRequest;
 import com.poc.diff.table.vo.ClubePagConsumerIdRequest;
 import com.poc.diff.table.vo.ClubePagRedeemableOfferListRequest;
 import com.poc.diff.table.vo.ClubePagResultVO;
-import com.poc.diff.table.vo.EncodeSaleRequest;
 import com.poc.diff.table.vo.MessageVO;
 import com.poc.diff.table.vo.TransactionResponseVO;
 import org.slf4j.Logger;
@@ -45,7 +44,7 @@ private MobileClubePagTesteService mobileClubePagTesteService;
 
     @PostMapping(value = "/transaction")
     public ResponseEntity<TransactionResponseVO> transaction(@RequestBody AuthenticationRequest request) throws Exception {
-        LOGGER.info("TRANSACTION ________________");
+        LOGGER.info("transaction");
         String token = service.authenticationRequest(request);
         return new ResponseEntity<>(service.createTransaction(request, token) , HttpStatus.OK);
     }
@@ -53,18 +52,19 @@ private MobileClubePagTesteService mobileClubePagTesteService;
 
 
     @PostMapping(value = "/transaction-load")
-    public ResponseEntity<List<String>> transactionLoad(@RequestBody AuthenticationRequest request) throws Exception {
-        LOGGER.info("TRANSACTION LOAD________________");
-        List<String> transactions =  new ArrayList<>();
+    public ResponseEntity<List<TransactionResponseVO>> transactionLoad(@RequestBody AuthenticationRequest request) throws Exception {
+        LOGGER.info("transactionLoad");
+        List<TransactionResponseVO> transactions =  new ArrayList<>();
         String token = service.authenticationRequest(request);
         for(int i =0; i < request.getQtd(); i++){
-            //TransactionResponseVO transaction = service.createTransaction(request, token);
+       //     TransactionResponseVO transaction = service.createTransaction(request, token);
             Future<TransactionResponseVO> futureVO =  tansactionResponseVOAsync(request, token);
             TransactionResponseVO transaction = futureVO.get();
 
             if(transaction.getTransactionId() != null){
-                transactions.add(transaction.getTransactionId()+"; "+transaction.getErrorCode());
+                transactions.add(transaction);
             }
+
             Integer value = Integer.valueOf(request.getEncodeSale().getAmmount());
             Integer newValue = value + 10;
             request.getEncodeSale().setAmmount(preencheCharEsquerda(String.valueOf(newValue), 10, "0"));
@@ -72,23 +72,16 @@ private MobileClubePagTesteService mobileClubePagTesteService;
         return new ResponseEntity<>(transactions, HttpStatus.OK);
     }
 
-
-
-
     @PostMapping(value = "/clubePagRedeemableOfferList")
     public ResponseEntity<List<MessageVO>> clubePagRedeemableOfferList(@RequestBody ClubePagRedeemableOfferListRequest request) throws Exception {
-        LOGGER.info("clubePagRedeemableOfferList LOAD________________");
+        LOGGER.info("clubePagRedeemableOfferList ");
 
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         authenticationRequest.setActivationCode(request.getActivationCode());
         authenticationRequest.setApplicationCode(request.getApplicationCode());
         authenticationRequest.setReaderModel(request.getReaderModel());
         authenticationRequest.setSerialNumber(request.getSerialNumber());
-
-
         String token = service.authenticationRequest(authenticationRequest);
-
-
         List<MessageVO> transactions =  new ArrayList<>();
 
         for(int i =0; i < request.getQtd(); i++){
@@ -112,7 +105,7 @@ private MobileClubePagTesteService mobileClubePagTesteService;
     @PostMapping(value = "/clubePagConsumerId")
     public ResponseEntity<ClubePagResultVO> clubePagConsumerId(
             @RequestBody AuthenticationRequest request) throws Exception {
-        LOGGER.info("ClubePagConsumerId LOAD________________request={}", request);
+        LOGGER.info("ClubePagConsumerId LOAD");
         String token = service.authenticationRequest(request);
         List<MessageVO> transactions = new ArrayList<>();
         for(int i =0; i < request.getQtd(); i++){
@@ -146,7 +139,7 @@ private MobileClubePagTesteService mobileClubePagTesteService;
 
 
     public Future<MessageVO> messageVOAsync(ClubePagConsumerIdRequest clubePagConsumerIdRequest, String token) throws InterruptedException {
-        LOGGER.info("messageVOAsync________________request={}", clubePagConsumerIdRequest);
+        LOGGER.info("messageVOAsync ");
         CompletableFuture<MessageVO> completableFuture = new CompletableFuture<>();
         Executors.newCachedThreadPool().submit(() -> {
             Thread.sleep(1000);
@@ -159,10 +152,10 @@ private MobileClubePagTesteService mobileClubePagTesteService;
 
 
     public Future<TransactionResponseVO> tansactionResponseVOAsync(AuthenticationRequest request, String token) throws InterruptedException {
-        LOGGER.info("TransactionResponseVOAsync  request={}", request);
+        LOGGER.info("tansactionResponseVOAsync");
         CompletableFuture<TransactionResponseVO> completableFuture = new CompletableFuture<>();
         Executors.newCachedThreadPool().submit(() -> {
-            Thread.sleep(1000);
+            Thread.sleep(500);
             TransactionResponseVO transaction = service.createTransaction(request, token);
             completableFuture.complete(transaction);
             return null;

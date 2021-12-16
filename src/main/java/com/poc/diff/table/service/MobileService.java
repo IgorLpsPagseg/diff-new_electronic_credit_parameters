@@ -4,11 +4,14 @@ import com.google.gson.Gson;
 import com.poc.diff.table.http.RestTemplateFactory;
 import com.poc.diff.table.vo.AuthenticationRequest;
 import com.poc.diff.table.vo.EncodeVO;
+import com.poc.diff.table.vo.MessageErrorVO;
+import com.poc.diff.table.vo.TransactionCreditCardSaleResul;
 import com.poc.diff.table.vo.TransactionResponse;
 import com.poc.diff.table.vo.TransactionResponseVO;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -27,10 +30,9 @@ public class MobileService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MobileService.class);
 
-    String urlTeste ="http://d3-hispania-qa2.host.intranet:34069/admin/service";
 
-    String urlTesteStg ="http://d3-pagsegurob-stg10.host.intrane:34069/admin/service";
-
+    @Value("${url.mobile.qa}")
+    private String endpoint;
 
 
     private RestTemplateFactory restTemplateFactory;
@@ -44,14 +46,20 @@ public class MobileService {
 
 
     public TransactionResponseVO createTransaction(AuthenticationRequest request, String token) throws Exception {
-
         String buffer = encodeSale(request,token);
-        String transactionCreditCardSale = transactionCreditCardSale(buffer, token, request.getApplicationCode());
+        TransactionCreditCardSaleResul resul = transactionCreditCardSale(buffer, token, request.getApplicationCode());
+
+        if (!resul.getMessageErrorVO().getCode().equalsIgnoreCase("0000")){
+            LOGGER.error(" errorVO={} ",resul.getMessageErrorVO());
+            return new TransactionResponseVO("null", resul.getMessageErrorVO().getCode(), "null",resul.getMessageErrorVO().getDescription());
+        }
+
+        String  transactionCreditCardSale = resul.getBuffer37();
         String transactionId = switchBufferUtilityDecodeBuffer(transactionCreditCardSale, token);
         String switchBufferUtilityEncodeConfirmation = switchBufferUtilityEncodeConfirmation(transactionId, token);
         String transactionCreditConfirmation = transactionCreditConfirmation(switchBufferUtilityEncodeConfirmation, token);
         String errorCode = getErrorCode(transactionCreditConfirmation);
-        return new TransactionResponseVO(transactionId, errorCode, transactionCreditConfirmation);
+        return new TransactionResponseVO(transactionId, errorCode, transactionCreditConfirmation, resul.getMessageErrorVO().getDescription());
     }
 
     public String authenticationRequest(AuthenticationRequest request){
@@ -76,7 +84,7 @@ public class MobileService {
         String str = g.toJson(req);
         try {
             response = getRestTemplateFactory().getRestTemplate().exchange(
-                    urlTeste+"/callTLV",
+                    endpoint+"/callTLV",
                     HttpMethod.POST,
                     new HttpEntity<>(str, getRestTemplateFactory().getHeaders()),
                     String.class);
@@ -108,9 +116,9 @@ public class MobileService {
         }
         if(request.getEncodeSale().getPinPadManufacturerName() == null)
         {
-            LOGGER.info("preencheVazio ");
+           // LOGGER.info("preencheVazio ");
             pinPadModel= preencheVazio( request.getReaderModel(), 19);
-            LOGGER.info("pinPadModel={} ",pinPadModel);
+         //   LOGGER.info("pinPadModel={} ",pinPadModel);
         }
 
 
@@ -144,14 +152,14 @@ public class MobileService {
             req.put("electronicCreditPhoneNumber",  request.getEncodeSale().getElectronicCreditPhoneNumber());
         }
 
-        LOGGER.info("EncodeSale req={}",req);
+        //LOGGER.info("EncodeSale req={}",req);
 
         ResponseEntity<EncodeVO> response = null;
         Gson g = new Gson();
         String str = g.toJson(req);
         try {
             response = getRestTemplateFactory().getRestTemplate().exchange(
-                    urlTeste+"/utilTLV",
+                    endpoint+"/utilTLV",
                     HttpMethod.POST,
                     new HttpEntity<>(str, getRestTemplateFactory().getHeadersSetToken( token)),
                     EncodeVO.class);
@@ -164,7 +172,7 @@ public class MobileService {
     }
 
 
-    public String transactionCreditCardSale(String buffer, String token, String applicationCode){
+    public TransactionCreditCardSaleResul transactionCreditCardSale(String buffer, String token, String applicationCode){
         LOGGER.info("Transaction Credit Card Sale");
 
         Map<String, Object> req = new HashMap<String, Object>();
@@ -191,7 +199,7 @@ public class MobileService {
         String str = g.toJson(req);
         try {
             response = getRestTemplateFactory().getRestTemplate().exchange(
-                    urlTeste+"/callTLV",
+                    endpoint+"/callTLV",
                     HttpMethod.POST,
                     new HttpEntity<>(str, getRestTemplateFactory().getHeadersSetToken( token)),
                     String.class);
@@ -201,7 +209,9 @@ public class MobileService {
         } catch (Exception e) {
             LOGGER.error(" error={} ",e.getMessage());
         }
-        return getBUFFER37(response);
+        MessageErrorVO errorVO = getMessageError(response);
+
+        return  new TransactionCreditCardSaleResul(getBUFFER37(response), errorVO);
     }
 
 
@@ -215,7 +225,7 @@ public class MobileService {
         String str = g.toJson(req);
         try {
             response = getRestTemplateFactory().getRestTemplate().exchange(
-                    urlTeste+"/utilTLV",
+                    endpoint+"/utilTLV",
                     HttpMethod.POST,
                     new HttpEntity<>(str, getRestTemplateFactory().getHeadersSetToken( token)),
                     TransactionResponse.class);
@@ -243,14 +253,14 @@ public class MobileService {
         String str = g.toJson(req);
         try {
             response = getRestTemplateFactory().getRestTemplate().exchange(
-                    urlTeste+"/utilTLV",
+                    endpoint+"/utilTLV",
                     HttpMethod.POST,
                     new HttpEntity<>(str, getRestTemplateFactory().getHeadersSetToken( token)),
                     EncodeVO.class);
         } catch (HttpClientErrorException ex) {
             LOGGER.error(" error={} ",ex.getMessage());
         }
-        LOGGER.info("buffer={}", response.getBody().getBuffer());
+        LOGGER.info("body={}", response.getBody());
         return response.getBody().getBuffer();
     }
 
@@ -275,7 +285,7 @@ public class MobileService {
         String str = g.toJson(req);
         try {
             response = getRestTemplateFactory().getRestTemplate().exchange(
-                    urlTeste+"/callTLV",
+                    endpoint+"/callTLV",
                     HttpMethod.POST,
                     new HttpEntity<>(str, getRestTemplateFactory().getHeadersSetToken( token)),
                     String.class);
@@ -303,6 +313,25 @@ public class MobileService {
         return jsonObject.get("BUFFER[37]").toString();
     }
 
+    private MessageErrorVO getMessageError(ResponseEntity<String> response){
+        LOGGER.info("getMessageError={}",response.getBody());
+        JSONObject jsonObject = new JSONObject(response.getBody());
+        jsonObject = new JSONObject(jsonObject.get("received").toString());
+        jsonObject = new JSONObject(jsonObject.get("params").toString());
+        String errormessage = null;
+
+
+        if(!jsonObject.get("ERROR_CODE[1]").toString().equalsIgnoreCase("0000")){
+            errormessage = jsonObject.get("ERROR_MESSAGE[2]").toString();
+        }else {
+            errormessage = null;
+        }
+
+        MessageErrorVO errorVO = new MessageErrorVO(jsonObject.get("ERROR_CODE[1]").toString(),errormessage );
+        LOGGER.info("errorVO={}",errorVO);
+        return errorVO;
+    }
+
     private String getToken(ResponseEntity<String> response){
         JSONObject jsonObject = new JSONObject(response.getBody());
         jsonObject = new JSONObject(jsonObject.get("received").toString());
@@ -310,8 +339,4 @@ public class MobileService {
         LOGGER.info(" token={}", jsonObject.get("TOKEN[7]"));
         return jsonObject.get("TOKEN[7]").toString();
     }
-
-
-
-
 }

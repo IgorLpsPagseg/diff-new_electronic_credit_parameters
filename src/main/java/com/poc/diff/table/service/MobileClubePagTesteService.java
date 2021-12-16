@@ -8,6 +8,7 @@ import com.poc.diff.table.vo.MessageVO;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,8 @@ public class MobileClubePagTesteService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MobileClubePagTesteService.class);
 
-    private static final String urlTeste ="http://d3-hispania-qa2.host.intranet:34069/admin/service";
+    @Value("${url.mobile.stg}")
+    private String endpoint;
 
     private RestTemplateFactory restTemplateFactory;
 
@@ -56,7 +58,7 @@ public class MobileClubePagTesteService {
         String str = g.toJson(req);
         try {
             response = getRestTemplateFactory().getRestTemplate().exchange(
-                    urlTeste+"/callTLV",
+                    endpoint+"/callTLV",
                     HttpMethod.POST,
                     new HttpEntity<>(str,getRestTemplateFactory().getHeadersSetToken( token)),
                     String.class);
@@ -86,7 +88,7 @@ public class MobileClubePagTesteService {
         String str = g.toJson(req);
         try {
             response = getRestTemplateFactory().getRestTemplate().exchange(
-                    urlTeste+"/callTLV",
+                    endpoint+"/callTLV",
                     HttpMethod.POST,
                     new HttpEntity<>(str, getRestTemplateFactory().getHeadersSetToken( token)),
                     String.class);
