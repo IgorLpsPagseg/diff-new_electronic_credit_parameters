@@ -6,8 +6,7 @@ import com.poc.diff.table.entity.GeneralInfo;
 import com.poc.diff.table.entity.JsonMessage;
 import com.poc.diff.table.entity.ResultTable;
 import com.poc.diff.table.entity.TableInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
@@ -17,10 +16,10 @@ import java.util.List;
  * @author ileonardo
  * @since 12/05/2021 10:57
  */
+@Log4j2
 @Service
 public class DiffService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DiffService.class);
 
     @Autowired
     private DiffValueService diffValueService;
@@ -32,19 +31,19 @@ public class DiffService {
         JsonMessage latest = null;
 
         List<JsonMessage> jsonMessage = resultTable.getJsonMessage();
-        LOGGER.info(" size "+jsonMessage.size());
-        LOGGER.info(" STABLE "+jsonMessage.get(0));
+        log.info(" size "+jsonMessage.size());
+        log.info(" STABLE "+jsonMessage.get(0));
         if(jsonMessage.get(0) != null){
             stable = jsonMessage.get(0);
         }
 
-        LOGGER.info(" BETA "+jsonMessage.get(1));
+        log.info(" BETA "+jsonMessage.get(1));
 
         if(jsonMessage.get(1) != null){
             beta = jsonMessage.get(1);
         }
 
-        LOGGER.info(" LATEST "+jsonMessage.get(2));
+        log.info(" LATEST "+jsonMessage.get(2));
 
         if(jsonMessage.get(2) != null){
             latest = jsonMessage.get(2);
@@ -66,7 +65,7 @@ public class DiffService {
 
         List<Concessionarie> concessionaireOutsideLatest = new ArrayList<>();
 
-        LOGGER.info("Procurando Concessionaria que sairam da Latest, se todas da stable estão na latest");
+        log.info("Procurando Concessionaria que sairam da Latest, se todas da stable estão na latest");
         for(Concessionarie stableConcessionarie: stable.getConcessionaries()){
             for(Concessionarie concessionarie2: jsonMessage2.getConcessionaries()){
                 if(stableConcessionarie.getName().equals(concessionarie2.getName())){
@@ -87,7 +86,7 @@ public class DiffService {
             }
             resultado = "Operadoras na Stable não encontradas na Latest: "+aux;
         }
-        LOGGER.info("resultado: "+resultado);
+        log.info("resultado: "+resultado);
         return resultado;
     }
 
@@ -101,7 +100,7 @@ public class DiffService {
         Boolean existe = false;
         String resultado = null;
         List<Concessionarie> concessionariesNovas = new ArrayList<>();
-        LOGGER.info(" Procurando nova Concessionaria, se todas da latest estão na stable");
+        log.info(" Procurando nova Concessionaria, se todas da latest estão na stable");
         for(Concessionarie concessionarieLatest: latest.getConcessionaries()){
             for(Concessionarie concessionarieStable: stable.getConcessionaries()){
                 if(concessionarieLatest.getName().equals(concessionarieStable.getName())){
@@ -121,7 +120,7 @@ public class DiffService {
             }
             resultado = "Operadoras na Latest não encontradas na Stable: "+aux;
         }
-        LOGGER.info("resultado:"+resultado);
+        log.info("resultado:"+resultado);
         return resultado;
     }
 
@@ -137,7 +136,7 @@ public class DiffService {
        Procurando por valores novos, que estão na Latest, mas nao esta na Stable
      */
     public String findNewValuesInLatest(JsonMessage stable, JsonMessage latest){
-        LOGGER.info("Procurando por valores novos, que estão na Latest, mas nao estão na Stable");
+        log.info("Procurando por valores novos, que estão na Latest, mas nao estão na Stable");
         return diffValueService.findNewValues(stable, latest);
     }
 
@@ -146,13 +145,13 @@ public class DiffService {
       Procurando por valores que saíram, que estão na Stable, mas nao esta na Latest
     */
     public String findStableValuesNotFoundInLatest(JsonMessage stable, JsonMessage latest){
-        LOGGER.info("Procurando por valores que saíram, que estão na Stable, mas nao estão na Latest");
+        log.info("Procurando por valores que saíram, que estão na Stable, mas nao estão na Latest");
         return diffValueService.findValuesWhiout(stable, latest);
     }
 
 
     public String findDifferenceInLatest(JsonMessage stable, JsonMessage latest){
-        LOGGER.info("Procurando por valores que estão na Latest, mas que estão diferentes na Stable");
+        log.info("Procurando por valores que estão na Latest, mas que estão diferentes na Stable");
         StringBuffer encontrados = new StringBuffer();
         latest.getConcessionaries().forEach(
                 concessionarieLatest -> differencesEmLatest(concessionarieLatest,
@@ -168,7 +167,7 @@ public class DiffService {
                                      List<Concessionarie> concessionariesStable,
                                      StringBuffer encontrados) {
 
-        LOGGER.info("Buscando novos Valores diferentes em campos Em Latest: ");
+        log.info("Buscando novos Valores diferentes em campos Em Latest: ");
         for(Concessionarie concessionarieStable: concessionariesStable){
             if(concessionarieLatest.getName().equals(concessionarieStable.getName())){
                 for(Branch bLatest: concessionarieLatest.getBranches()){
@@ -223,7 +222,7 @@ public class DiffService {
 
 
     private void veryfiGeneralInfo(Branch branchStable, Branch bLatest, StringBuffer encontrado){
-        LOGGER.info("Buscando Valores diferentes em campos Em Latest GeneralInfo: ");
+        log.info("Buscando Valores diferentes em campos Em Latest GeneralInfo: ");
         branchStable.getTablesInfo().forEach(
 
                 tablesInfoStable->{
@@ -269,7 +268,7 @@ public class DiffService {
     Procurando por novas Branchs que não estão em Latest
   */
     public String findBranchsNotFoundInLatest(JsonMessage stable, JsonMessage latest){
-        LOGGER.info("Procurando por novas Branchs que não estão mais em Latest, foram retiradas");
+        log.info("Procurando por novas Branchs que não estão mais em Latest, foram retiradas");
         StringBuffer encontrados = new StringBuffer();
         stable.getConcessionaries().forEach(
                 concessionarieStable -> procurarBranchNovas( concessionarieStable,
@@ -283,7 +282,7 @@ public class DiffService {
      Procurando por novas Branchs que estão em Latest
    */
     public String findNewBranchsInLatest(JsonMessage stable, JsonMessage latest){
-        LOGGER.info("Procurando pr novas Branchs que estão em Latest");
+        log.info("Procurando pr novas Branchs que estão em Latest");
         StringBuffer encontrados = new StringBuffer();
         latest.getConcessionaries().forEach(
                 concessionarieLatest -> procurarBranchNovas( concessionarieLatest,
@@ -297,7 +296,7 @@ public class DiffService {
                                      List<Concessionarie> concessionariesStable,
                                      StringBuffer encontrados){
 
-        LOGGER.info("Buscando novas branches em Latest");
+        log.info("Buscando novas branches em Latest");
 
         for(Concessionarie concessionarieStable: concessionariesStable) {
 
@@ -324,7 +323,7 @@ public class DiffService {
     private void veryfiNewBranchInLatest(List<Branch> branchStableList,
                                          Branch bLatest,
                                          List<Branch> branchNovas){
-        LOGGER.info("Buscando novas branches em Latest");
+        log.info("Buscando novas branches em Latest");
         Boolean existe = false;
         for(Branch branchStable: branchStableList){
             if(bLatest.getName().equals(branchStable.getName())){

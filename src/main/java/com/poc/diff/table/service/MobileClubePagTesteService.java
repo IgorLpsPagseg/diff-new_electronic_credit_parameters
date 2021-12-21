@@ -2,12 +2,13 @@ package com.poc.diff.table.service;
 
 import com.google.gson.Gson;
 import com.poc.diff.table.http.RestTemplateFactory;
+import com.poc.diff.table.http.RestUtil;
 import com.poc.diff.table.vo.ClubePagConsumerIdRequest;
 import com.poc.diff.table.vo.ClubePagRedeemableOfferListRequest;
 import com.poc.diff.table.vo.MessageVO;
+import lombok.extern.log4j.Log4j2;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -21,26 +22,15 @@ import java.util.Map;
  * @author ileonardo
  * @since 10/12/2021 09:59
  */
+@Log4j2
 @Service
 public class MobileClubePagTesteService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MobileClubePagTesteService.class);
-
-    @Value("${url.mobile.stg}")
-    private String endpoint;
-
-    private RestTemplateFactory restTemplateFactory;
-
-    public RestTemplateFactory getRestTemplateFactory() throws Exception {
-        if (this.restTemplateFactory == null) {
-            this.restTemplateFactory = new RestTemplateFactory();
-        }
-        return this.restTemplateFactory;
-    }
-
+    @Autowired
+    RestUtil restUtil;
 
     public MessageVO clubePagRedeemableOfferList(ClubePagRedeemableOfferListRequest request, String token) throws Exception {
-        LOGGER.info("ClubePagRedeemableOfferList");
+        log.info("ClubePagRedeemableOfferList");
         Map<String, Object> req = new HashMap<String, Object>();
         req.put("type", "0x1040");
         req.put("version", "0x0001");
@@ -57,20 +47,20 @@ public class MobileClubePagTesteService {
         Gson g = new Gson();
         String str = g.toJson(req);
         try {
-            response = getRestTemplateFactory().getRestTemplate().exchange(
-                    endpoint+"/callTLV",
+            response = restUtil.getRestTemplateFactory().getRestTemplate().exchange(
+                    restUtil.getEndpoint()+"/callTLV",
                     HttpMethod.POST,
-                    new HttpEntity<>(str,getRestTemplateFactory().getHeadersSetToken( token)),
+                    new HttpEntity<>(str,restUtil.getRestTemplateFactory().getHeadersSetToken( token)),
                     String.class);
         } catch (HttpClientErrorException ex) {
-            LOGGER.error(" error={} ",ex.getMessage());
+            log.error(" error={} ",ex.getMessage());
         }
         return getMessage(response);
     }
 
 
     public MessageVO ClubePagConsumerId(ClubePagConsumerIdRequest request, String token) throws Exception {
-        LOGGER.info("ClubePagConsumerId");
+        log.info("ClubePagConsumerId");
         Map<String, Object> req = new HashMap<String, Object>();
         req.put("type", "0x1080");
         req.put("version", "0x0001");
@@ -87,13 +77,13 @@ public class MobileClubePagTesteService {
         Gson g = new Gson();
         String str = g.toJson(req);
         try {
-            response = getRestTemplateFactory().getRestTemplate().exchange(
-                    endpoint+"/callTLV",
+            response = restUtil.getRestTemplateFactory().getRestTemplate().exchange(
+                    restUtil.getEndpoint()+"/callTLV",
                     HttpMethod.POST,
-                    new HttpEntity<>(str, getRestTemplateFactory().getHeadersSetToken( token)),
+                    new HttpEntity<>(str, restUtil.getRestTemplateFactory().getHeadersSetToken( token)),
                     String.class);
         } catch (HttpClientErrorException ex) {
-            LOGGER.error(" error={} ",ex.getMessage());
+            log.error(" error={} ",ex.getMessage());
         }
 
         return getMessage(response);

@@ -8,8 +8,7 @@ import com.poc.diff.table.vo.ClubePagRedeemableOfferListRequest;
 import com.poc.diff.table.vo.ClubePagResultVO;
 import com.poc.diff.table.vo.MessageVO;
 import com.poc.diff.table.vo.TransactionResponseVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -29,11 +28,11 @@ import java.util.concurrent.Future;
  * @author ileonardo
  * @since 16/11/2021 17:26
  */
+@Log4j2
 @RestController
 @RequestMapping(path = "mobile", produces = MediaType.APPLICATION_JSON_UTF8_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
 public class MobileTesteResource {
 
-private static final Logger LOGGER = LoggerFactory.getLogger(MobileTesteResource.class);
 
 @Autowired
 private MobileService service;
@@ -44,7 +43,7 @@ private MobileClubePagTesteService mobileClubePagTesteService;
 
     @PostMapping(value = "/transaction")
     public ResponseEntity<TransactionResponseVO> transaction(@RequestBody AuthenticationRequest request) throws Exception {
-        LOGGER.info("transaction");
+        log.info("transaction");
         String token = service.authenticationRequest(request);
         return new ResponseEntity<>(service.createTransaction(request, token) , HttpStatus.OK);
     }
@@ -53,13 +52,13 @@ private MobileClubePagTesteService mobileClubePagTesteService;
 
     @PostMapping(value = "/transaction-load")
     public ResponseEntity<List<TransactionResponseVO>> transactionLoad(@RequestBody AuthenticationRequest request) throws Exception {
-        LOGGER.info("transactionLoad");
+        log.info("transactionLoad");
         List<TransactionResponseVO> transactions =  new ArrayList<>();
         String token = service.authenticationRequest(request);
         for(int i =0; i < request.getQtd(); i++){
-       //     TransactionResponseVO transaction = service.createTransaction(request, token);
-            Future<TransactionResponseVO> futureVO =  tansactionResponseVOAsync(request, token);
-            TransactionResponseVO transaction = futureVO.get();
+            TransactionResponseVO transaction = service.createTransaction(request, token);
+//            Future<TransactionResponseVO> futureVO =  tansactionResponseVOAsync(request, token);
+//            TransactionResponseVO transaction = futureVO.get();
 
             if(transaction.getTransactionId() != null){
                 transactions.add(transaction);
@@ -74,7 +73,7 @@ private MobileClubePagTesteService mobileClubePagTesteService;
 
     @PostMapping(value = "/clubePagRedeemableOfferList")
     public ResponseEntity<List<MessageVO>> clubePagRedeemableOfferList(@RequestBody ClubePagRedeemableOfferListRequest request) throws Exception {
-        LOGGER.info("clubePagRedeemableOfferList ");
+        log.info("clubePagRedeemableOfferList ");
 
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         authenticationRequest.setActivationCode(request.getActivationCode());
@@ -105,7 +104,7 @@ private MobileClubePagTesteService mobileClubePagTesteService;
     @PostMapping(value = "/clubePagConsumerId")
     public ResponseEntity<ClubePagResultVO> clubePagConsumerId(
             @RequestBody AuthenticationRequest request) throws Exception {
-        LOGGER.info("ClubePagConsumerId LOAD");
+        log.info("ClubePagConsumerId LOAD");
         String token = service.authenticationRequest(request);
         List<MessageVO> transactions = new ArrayList<>();
         for(int i =0; i < request.getQtd(); i++){
@@ -139,7 +138,7 @@ private MobileClubePagTesteService mobileClubePagTesteService;
 
 
     public Future<MessageVO> messageVOAsync(ClubePagConsumerIdRequest clubePagConsumerIdRequest, String token) throws InterruptedException {
-        LOGGER.info("messageVOAsync ");
+        log.info("messageVOAsync ");
         CompletableFuture<MessageVO> completableFuture = new CompletableFuture<>();
         Executors.newCachedThreadPool().submit(() -> {
             Thread.sleep(1000);
@@ -152,10 +151,10 @@ private MobileClubePagTesteService mobileClubePagTesteService;
 
 
     public Future<TransactionResponseVO> tansactionResponseVOAsync(AuthenticationRequest request, String token) throws InterruptedException {
-        LOGGER.info("tansactionResponseVOAsync");
+        log.info("tansactionResponseVOAsync");
         CompletableFuture<TransactionResponseVO> completableFuture = new CompletableFuture<>();
         Executors.newCachedThreadPool().submit(() -> {
-            Thread.sleep(500);
+            //Thread.sleep(500);
             TransactionResponseVO transaction = service.createTransaction(request, token);
             completableFuture.complete(transaction);
             return null;

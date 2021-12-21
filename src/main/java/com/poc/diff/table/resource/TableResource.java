@@ -3,12 +3,14 @@ package com.poc.diff.table.resource;
 import com.poc.diff.table.entity.JsonMessage;
 import com.poc.diff.table.entity.ResultTable;
 import com.poc.diff.table.service.DiffService;
+import com.poc.diff.table.service.ElectronicCreditParametersService;
 import com.poc.diff.table.service.FileReaderService;
+import com.poc.diff.table.service.MobileService;
+import com.poc.diff.table.vo.AuthenticationRequest;
 import com.poc.diff.table.vo.DiffReporVO;
 import com.poc.diff.table.vo.DiffRequest;
+import com.poc.diff.table.vo.MessageErrorVO;
 import lombok.extern.log4j.Log4j2;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,13 +29,18 @@ import java.util.List;
 @RestController
 @RequestMapping("/switch_new_electronic_credit_parameters")
 public class TableResource {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TableResource.class);
 
     @Autowired
     private FileReaderService fileReaderService;
 
     @Autowired
     private DiffService diffService;
+
+    @Autowired
+    private MobileService mobileService;
+
+    @Autowired
+    private ElectronicCreditParametersService electronicCreditParametersService;
 
 
     @RequestMapping(
@@ -67,19 +74,19 @@ public class TableResource {
         JsonMessage latest = null;
 
         List<JsonMessage> jsonMessage = resultTable.getJsonMessage();
-        LOGGER.info(" size "+jsonMessage.size());
-        LOGGER.info(" STABLE "+jsonMessage.get(0));
+        log.info(" size "+jsonMessage.size());
+        log.info(" STABLE "+jsonMessage.get(0));
         if(jsonMessage.get(0) != null){
             stable = jsonMessage.get(0);
         }
 
-        LOGGER.info(" BETA "+jsonMessage.get(1));
+        log.info(" BETA "+jsonMessage.get(1));
 
         if(jsonMessage.get(1) != null){
             beta = jsonMessage.get(1);
         }
 
-        LOGGER.info(" LATEST "+jsonMessage.get(2));
+        log.info(" LATEST "+jsonMessage.get(2));
 
         if(jsonMessage.get(2) != null){
             latest = jsonMessage.get(2);
@@ -108,7 +115,7 @@ public class TableResource {
     public ResponseEntity<DiffReporVO> resultReport(@RequestBody DiffRequest request) throws Exception {
         String repositoryPath = request.getRepositoryPath();
         String folderName = request.getFolderName();
-        LOGGER.info( " path: "+repositoryPath+ " folderName: "+folderName);
+        log.info( " path: "+repositoryPath+ " folderName: "+folderName);
 
         ResultTable resultTable = fileReaderService.getResult(repositoryPath, folderName);
 
@@ -117,19 +124,19 @@ public class TableResource {
         JsonMessage latest = null;
 
         List<JsonMessage> jsonMessage = resultTable.getJsonMessage();
-        LOGGER.info(" size "+jsonMessage.size());
-        LOGGER.info(" STABLE "+jsonMessage.get(0));
+        log.info(" size "+jsonMessage.size());
+        log.info(" STABLE "+jsonMessage.get(0));
         if(jsonMessage.get(0) != null){
             stable = jsonMessage.get(0);
         }
 
-        LOGGER.info(" BETA "+jsonMessage.get(1));
+        log.info(" BETA "+jsonMessage.get(1));
 
         if(jsonMessage.get(1) != null){
             beta = jsonMessage.get(1);
         }
 
-        LOGGER.info(" LATEST "+jsonMessage.get(2));
+        log.info(" LATEST "+jsonMessage.get(2));
 
         if(jsonMessage.get(2) != null){
             latest = jsonMessage.get(2);
@@ -163,6 +170,17 @@ public class TableResource {
                 .body(fileReaderService.getResult(repositoryPath, folderName));
     }
 
+
+
+    @RequestMapping(
+            value = {"/update-stg"},
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<MessageErrorVO> updateStable(@RequestBody AuthenticationRequest request) throws Exception {
+        String token = mobileService.authenticationRequest(request);
+        MessageErrorVO vo = electronicCreditParametersService.copyStableToLatestIfNeeded(request, token);
+        return ResponseEntity.ok().body(vo);
+    }
 
 }
 

@@ -22,4 +22,5 @@ public class AuthenticationRequest {
     private Integer           qtd;
     private EncodeSaleRequest encodeSale;
     private ClubePagConsumerIdRequest clubePagConsumerId;
+    private TerminalParametersRequest terminalParametersRequest;
 }

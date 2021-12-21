@@ -5,8 +5,7 @@ import com.poc.diff.table.entity.Concessionarie;
 import com.poc.diff.table.entity.JsonMessage;
 import com.poc.diff.table.entity.TableInfo;
 import com.poc.diff.table.entity.Value;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,18 +14,16 @@ import java.util.List;
  * @author ileonardo
  * @since 12/05/2021 10:57
  */
+@Log4j2
 @Service
 public class DiffValueService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DiffValueService.class);
-
 
 
     /*
      Procurando por valores que sairam, que estão na Stable, mas nao esta na Latest
    */
     public String findValuesWhiout(JsonMessage stable, JsonMessage latest){
-        LOGGER.info("Procurando por valores que sairam, que estão na Stable, mas nao esta na Latest");
+        log.info("Procurando por valores que sairam, que estão na Stable, mas nao esta na Latest");
         StringBuffer encontrados = new StringBuffer();
         stable.getConcessionaries().forEach(
         concessionarieStable -> findConcessionarie(
@@ -43,7 +40,7 @@ public class DiffValueService {
 //                        encontrados)
 //        );
 
-        LOGGER.info("Resultado Buscas novos valores: "+encontrados.toString());
+        log.info("Resultado Buscas novos valores: "+encontrados.toString());
         return encontrados.toString();
     }
 
@@ -52,7 +49,7 @@ public class DiffValueService {
        Procurando por valores novos, que estão na Latest, mas nao esta na Stable
      */
     public String findNewValues(JsonMessage stable, JsonMessage latest){
-        LOGGER.info("Procurando por valores novos, que estão na Latest, mas nao estão na Stable");
+        log.info("Procurando por valores novos, que estão na Latest, mas nao estão na Stable");
         StringBuffer encontrados = new StringBuffer();
 
         //Buscando concessionaria por Latest
@@ -63,7 +60,7 @@ public class DiffValueService {
                         encontrados)
         );
 
-        LOGGER.info("Resultado Buscas novos valores: "+encontrados.toString());
+        log.info("Resultado Buscas novos valores: "+encontrados.toString());
         return encontrados.toString();
     }
 
@@ -100,7 +97,7 @@ public class DiffValueService {
                               StringBuffer encontrados,
                               Branch bLatest,
                               Branch bStable) {
-        LOGGER.info("Buscando novos Valores Em Latest: ");
+        log.info("Buscando novos Valores Em Latest: ");
         for(TableInfo tableInfoLatest: bLatest.getTablesInfo()){
             List<Value> novosValores = new ArrayList<>();
             StringBuilder valorNaoExiste = new StringBuilder();

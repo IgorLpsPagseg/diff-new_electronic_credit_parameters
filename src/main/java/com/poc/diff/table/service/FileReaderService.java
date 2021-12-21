@@ -2,9 +2,8 @@ package com.poc.diff.table.service;
 
 import com.google.gson.Gson;
 import com.poc.diff.table.entity.ResultTable;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -13,16 +12,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /** */
+@Log4j2
 @Service
 public class FileReaderService {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(FileReaderService.class);
 
   private String basePath;
 
 
   public ResultTable getResult(final String repositoryPath, final String folderName) throws Exception {
-    LOGGER.info("repositoryPath "+ repositoryPath+" folderName "+  folderName);
+    log.info("repositoryPath "+ repositoryPath+" folderName "+  folderName);
     setBasePath(repositoryPath,folderName);
     return getResultTableByPath();
   }
@@ -31,7 +29,7 @@ public class FileReaderService {
     try {
       List<File> files = getFileList(this.basePath);
       String fileName = files.get(0).getName();
-      LOGGER.info("Arquivo encontrado " + fileName);
+      log.info("Arquivo encontrado " + fileName);
       String newPath = this.basePath.concat("/").concat(fileName);
       String json = RepositoryUtil.carregarArquivo(newPath);
       Gson gson = new Gson();
@@ -39,7 +37,7 @@ public class FileReaderService {
    //   return new ObjectMapper(new JsonFactory()).readValue(new File(newPath), ResultTable.class);
       return resultTable;
     } catch (Exception e) {
-      LOGGER.error("Erro ao ler pasta do leitor " + this.basePath, e);
+      log.error("Erro ao ler pasta do leitor " + this.basePath, e);
       return null;
     }
   }
