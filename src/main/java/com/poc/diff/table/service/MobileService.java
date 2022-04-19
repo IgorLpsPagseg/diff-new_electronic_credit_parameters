@@ -154,6 +154,7 @@ public class MobileService {
             log.error(" error={} ",ex.getMessage());
         }
 
+        log.info("Encode sale body={}", response.getBody());
         log.info("buffer={}", response.getBody().getBuffer());
         return response.getBody().getBuffer();
     }
@@ -223,6 +224,7 @@ public class MobileService {
         } catch (HttpClientErrorException ex) {
             log.error(" error={} ",ex.getMessage());
         }
+        log.info("body={}", response.getBody());
         log.info("transactionId={}", response.getBody().getTransactionId());
         return response.getBody().getTransactionId();
     }
@@ -283,6 +285,7 @@ public class MobileService {
         } catch (HttpClientErrorException ex) {
             log.error(" error={} ",ex.getMessage());
         }
+        log.info(" COnfirmation: "+response.getBody());
         return response.getBody();
     }
 
@@ -297,6 +300,7 @@ public class MobileService {
 
 
     private String getBUFFER37(ResponseEntity<String> response){
+        log.info("getBUFFER37 response={}",response);
         JSONObject jsonObject = new JSONObject(response.getBody());
         jsonObject = new JSONObject(jsonObject.get("received").toString());
         jsonObject = new JSONObject(jsonObject.get("params").toString());

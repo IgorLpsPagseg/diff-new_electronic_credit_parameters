@@ -6,6 +6,7 @@ import com.poc.diff.table.http.RestUtil;
 import com.poc.diff.table.vo.ClubePagConsumerIdRequest;
 import com.poc.diff.table.vo.ClubePagRedeemableOfferListRequest;
 import com.poc.diff.table.vo.MessageVO;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +27,12 @@ import java.util.Map;
 @Service
 public class MobileClubePagTesteService {
 
+    private static RestUtil restUtilRunne;
+
     @Autowired
     RestUtil restUtil;
+
+
 
     public MessageVO clubePagRedeemableOfferList(ClubePagRedeemableOfferListRequest request, String token) throws Exception {
         log.info("ClubePagRedeemableOfferList");
@@ -98,4 +103,51 @@ public class MobileClubePagTesteService {
         String hostDateTime = jsonObject.get("HOST_DATE_TIME[86]").toString();
         return new MessageVO(errorMessage,errorCode, hostDateTime );
     }
+
+
+
+    public String clubePagRedeemableOfferListEstress() throws Exception {
+        log.info("clubePagRedeemableOfferListEstress");
+        ResponseEntity<String> response = null;
+        try {
+            response = restUtil.getRestTemplateFactory().getRestTemplate().exchange(
+                     "https://clubepag-orchestrator.capture.presential.dev.intranet.pags/redeemable-offer?customerCode=CUSTOMER:A41ECE62B2AC49F0B5ABEAD25136750B&consumerId=11999556633",
+                    HttpMethod.GET,
+                    null,
+                    String.class);
+            log.info(response);
+
+            return response.toString();
+        } catch (HttpClientErrorException ex) {
+            log.error(" error={} ",ex.getMessage());
+            return ex.getMessage();
+        }
+    }
+
+    public static RestUtil getRestUtilRunne(){
+        if(restUtilRunne == null){
+            restUtilRunne = new RestUtil();
+        }
+        return restUtilRunne;
+    }
+
+    public String clubePagRedeemableOfferListEstressRunnable(int threadNumber) throws Exception {
+        log.info("clubePagRedeemableOfferListEstressRunnable "+threadNumber);
+        ResponseEntity<String> response = null;
+        restUtilRunne = new RestUtil();
+        try {
+            response = restUtil.getRestTemplateFactory().getRestTemplate().exchange(
+                    "https://clubepag-orchestrator.capture.presential.dev.intranet.pags/redeemable-offer?customerCode=CUSTOMER:A41ECE62B2AC49F0B5ABEAD25136750B&consumerId=11999556633",
+                    HttpMethod.GET,
+                    null,
+                    String.class);
+            log.info(" threadNumber "+threadNumber+ response);
+            return response.toString();
+        } catch (HttpClientErrorException ex) {
+            log.error(" threadNumber={} error={} ",threadNumber, ex.getMessage());
+            return ex.getMessage();
+        }
+    }
 }
+
+
